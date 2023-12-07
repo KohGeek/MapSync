@@ -1,8 +1,9 @@
 package gjum.minecraft.mapsync.common;
 
 import gjum.minecraft.mapsync.common.data.*;
-import gjum.minecraft.mapsync.common.utilities.Hasher;
+import gjum.minecraft.mapsync.common.utilities.Shortcuts;
 import io.netty.buffer.Unpooled;
+import java.security.MessageDigest;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
@@ -32,9 +33,11 @@ public class Cartography {
 		// TODO speedup: don't serialize twice (once here, once later when writing to network)
 		var columnsBuf = Unpooled.buffer();
 		ChunkTile.writeColumns(columns, columnsBuf);
-		final byte[] dataHash = Hasher.sha1()
-				.update(columnsBuf)
-				.generateHash();
+		final byte[] dataHash; {
+			final MessageDigest messageDigest = Shortcuts.sha1();
+			messageDigest.update(columnsBuf.nioBuffer());
+			dataHash = messageDigest.digest();
+		}
 
 		return new ChunkTile(dimension, cx, cz, timestamp, dataVersion, dataHash, columns);
 	}
