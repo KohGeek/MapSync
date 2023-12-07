@@ -17,6 +17,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -71,6 +72,8 @@ public abstract class MapSyncMod {
 	public abstract boolean isDevMode();
 
 	public abstract void registerKeyBinding(KeyMapping mapping);
+
+	public abstract @NotNull File getConfigDir();
 
 	public void init() {
 		registerKeyBinding(openGuiKey);
