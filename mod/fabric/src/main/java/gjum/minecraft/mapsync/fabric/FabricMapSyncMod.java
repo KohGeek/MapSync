@@ -1,6 +1,7 @@
 package gjum.minecraft.mapsync.fabric;
 
 import gjum.minecraft.mapsync.common.MapSyncMod;
+import gjum.minecraft.mapsync.common.utils.MagicValues;
 import java.io.File;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
@@ -24,7 +25,7 @@ public class FabricMapSyncMod extends MapSyncMod implements ClientModInitializer
 
 	@Override
 	public String getVersion() {
-		return VERSION + "+fabric";
+		return MagicValues.VERSION + "+fabric";
 	}
 
 	@Override

@@ -24,8 +24,6 @@ import java.util.stream.Collectors;
 import static gjum.minecraft.mapsync.common.Cartography.chunkTileFromLevel;
 
 public abstract class MapSyncMod {
-	public static final String VERSION = "%VERSION%";
-
 	private static final Minecraft mc = Minecraft.getInstance();
 
 	public static final Logger logger = LogManager.getLogger(MapSyncMod.class);

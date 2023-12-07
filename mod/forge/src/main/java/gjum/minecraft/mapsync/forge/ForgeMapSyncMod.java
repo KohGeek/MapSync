@@ -2,6 +2,7 @@ package gjum.minecraft.mapsync.forge;
 
 import gjum.minecraft.mapsync.common.MapSyncMod;
 import gjum.minecraft.mapsync.common.ModGui;
+import gjum.minecraft.mapsync.common.utils.MagicValues;
 import java.io.File;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.ClientRegistry;
@@ -26,7 +27,7 @@ public class ForgeMapSyncMod extends MapSyncMod {
 
 	@Override
 	public String getVersion() {
-		return VERSION + "+forge";
+		return MagicValues.VERSION + "+forge";
 	}
 
 	@Override
