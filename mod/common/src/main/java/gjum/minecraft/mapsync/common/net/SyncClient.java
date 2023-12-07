@@ -6,7 +6,7 @@ import gjum.minecraft.mapsync.common.data.ChunkTile;
 import gjum.minecraft.mapsync.common.net.encryption.EncryptionDecoder;
 import gjum.minecraft.mapsync.common.net.encryption.EncryptionEncoder;
 import gjum.minecraft.mapsync.common.net.packet.*;
-import gjum.minecraft.mapsync.common.utils.Hasher;
+import gjum.minecraft.mapsync.common.utilities.Hasher;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;

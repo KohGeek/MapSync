@@ -1,4 +1,4 @@
-package gjum.minecraft.mapsync.common.utils;
+package gjum.minecraft.mapsync.common.utilities;
 
 public final class MagicValues {
     public static final String VERSION = "%VERSION%";

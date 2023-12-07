@@ -2,7 +2,7 @@ package gjum.minecraft.mapsync.forge;
 
 import gjum.minecraft.mapsync.common.MapSyncMod;
 import gjum.minecraft.mapsync.common.ModGui;
-import gjum.minecraft.mapsync.common.utils.MagicValues;
+import gjum.minecraft.mapsync.common.utilities.MagicValues;
 import java.io.File;
 import net.minecraft.client.KeyMapping;
 import net.minecraftforge.client.ClientRegistry;

@@ -27,7 +27,7 @@ tasks {
 		replaceToken (
 				"%VERSION%",
 				project.version,
-				"src/main/java/gjum/minecraft/mapsync/common/utils/MagicValues.java"
+				"src/main/java/gjum/minecraft/mapsync/common/utilities/MagicValues.java"
 		)
 	}
 }

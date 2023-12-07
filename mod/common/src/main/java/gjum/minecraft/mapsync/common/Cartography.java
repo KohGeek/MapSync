@@ -1,7 +1,7 @@
 package gjum.minecraft.mapsync.common;
 
 import gjum.minecraft.mapsync.common.data.*;
-import gjum.minecraft.mapsync.common.utils.Hasher;
+import gjum.minecraft.mapsync.common.utilities.Hasher;
 import io.netty.buffer.Unpooled;
 import net.minecraft.client.Minecraft;
 import net.minecraft.core.BlockPos;

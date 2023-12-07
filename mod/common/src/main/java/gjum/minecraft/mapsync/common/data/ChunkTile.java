@@ -1,8 +1,8 @@
 package gjum.minecraft.mapsync.common.data;
 
 import gjum.minecraft.mapsync.common.net.Packet;
-import gjum.minecraft.mapsync.common.utils.Arguments;
-import gjum.minecraft.mapsync.common.utils.MagicValues;
+import gjum.minecraft.mapsync.common.utilities.Arguments;
+import gjum.minecraft.mapsync.common.utilities.MagicValues;
 import io.netty.buffer.ByteBuf;
 import net.minecraft.core.Registry;
 import net.minecraft.resources.ResourceKey;

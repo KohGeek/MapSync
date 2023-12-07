@@ -1,4 +1,4 @@
-package gjum.minecraft.mapsync.common.utils;
+package gjum.minecraft.mapsync.common.utilities;
 
 import io.netty.buffer.ByteBuf;
 import java.nio.ByteBuffer;
