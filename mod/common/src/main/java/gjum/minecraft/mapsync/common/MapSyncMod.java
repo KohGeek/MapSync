@@ -1,11 +1,27 @@
 package gjum.minecraft.mapsync.common;
 
+import static gjum.minecraft.mapsync.common.sync.Cartography.chunkTileFromLevel;
+
 import com.mojang.blaze3d.platform.InputConstants;
 import gjum.minecraft.mapsync.common.config.ModConfig;
 import gjum.minecraft.mapsync.common.config.ServerConfig;
-import gjum.minecraft.mapsync.common.data.*;
-import gjum.minecraft.mapsync.common.net.SyncClient;
-import gjum.minecraft.mapsync.common.net.packet.*;
+import gjum.minecraft.mapsync.common.sync.DimensionState;
+import gjum.minecraft.mapsync.common.sync.RenderQueue;
+import gjum.minecraft.mapsync.common.sync.data.CatchupChunk;
+import gjum.minecraft.mapsync.common.sync.data.ChunkTile;
+import gjum.minecraft.mapsync.common.sync.data.RegionPos;
+import gjum.minecraft.mapsync.common.sync.gui.ModGui;
+import gjum.minecraft.mapsync.common.sync.network.SyncConnection;
+import gjum.minecraft.mapsync.common.sync.network.packet.ClientboundChunkTimestampsResponsePacket;
+import gjum.minecraft.mapsync.common.sync.network.packet.ClientboundRegionTimestampsPacket;
+import gjum.minecraft.mapsync.common.sync.network.packet.ServerboundCatchupRequestPacket;
+import gjum.minecraft.mapsync.common.sync.network.packet.ServerboundChunkTimestampsRequestPacket;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.stream.Collectors;
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ServerData;
@@ -16,12 +32,6 @@ import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.lwjgl.glfw.GLFW;
-
-import java.io.File;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static gjum.minecraft.mapsync.common.Cartography.chunkTileFromLevel;
 
 public abstract class MapSyncMod {
 	private static final Minecraft mc = Minecraft.getInstance();
@@ -43,7 +53,7 @@ public abstract class MapSyncMod {
 			"category.map-sync"
 	);
 
-	private @NotNull List<SyncClient> syncClients = new ArrayList<>();
+	private @NotNull List<SyncConnection> syncConnections = new ArrayList<>();
 
 	/**
 	 * Tracks state and render thread for current mc dimension.
@@ -116,7 +126,7 @@ public abstract class MapSyncMod {
 		return serverConfig;
 	}
 
-	public @NotNull List<SyncClient> getSyncClients() {
+	public @NotNull List<SyncConnection> getSyncClients() {
 		var serverConfig = getServerConfig();
 		if (serverConfig == null) return shutDownSyncClients();
 
@@ -124,9 +134,9 @@ public abstract class MapSyncMod {
 		if (syncServerAddresses.isEmpty()) return shutDownSyncClients();
 
 		// will be filled with clients that are still wanted (address) and are still connected
-		var existingClients = new HashMap<String, SyncClient>();
+		var existingClients = new HashMap<String, SyncConnection>();
 
-		for (SyncClient client : syncClients) {
+		for (SyncConnection client : syncConnections) {
 			if (client.isShutDown) continue;
 			// avoid reconnecting to same sync server, to keep shared state (expensive to resync)
 			if (!client.gameAddress.equals(serverConfig.gameAddress)) {
@@ -140,21 +150,21 @@ public abstract class MapSyncMod {
 			}
 		}
 
-		syncClients = syncServerAddresses.stream().map(address -> {
+		syncConnections = syncServerAddresses.stream().map(address -> {
 			var client = existingClients.get(address);
-			if (client == null) client = new SyncClient(address, serverConfig.gameAddress);
+			if (client == null) client = new SyncConnection(address, serverConfig.gameAddress);
 			client.autoReconnect = true;
 			return client;
 		}).collect(Collectors.toList());
 
-		return syncClients;
+		return syncConnections;
 	}
 
-	public List<SyncClient> shutDownSyncClients() {
-		for (SyncClient client : syncClients) {
+	public List<SyncConnection> shutDownSyncClients() {
+		for (SyncConnection client : syncConnections) {
 			client.shutDown();
 		}
-		syncClients.clear();
+		syncConnections.clear();
 		return Collections.emptyList();
 	}
 
@@ -202,7 +212,7 @@ public abstract class MapSyncMod {
 		if (RenderQueue.areAllMapModsMapping()) {
 			dimensionState.setChunkTimestamp(chunkTile.chunkPos(), chunkTile.timestamp());
 		}
-		for (SyncClient client : getSyncClients()) {
+		for (SyncConnection client : getSyncClients()) {
 			client.sendChunkTile(chunkTile);
 		}
 	}
@@ -220,7 +230,7 @@ public abstract class MapSyncMod {
 		// TODO tell server our current dimension
 	}
 
-	public void handleRegionTimestamps(ClientboundRegionTimestampsPacket packet, SyncClient client) {
+	public void handleRegionTimestamps(ClientboundRegionTimestampsPacket packet, SyncConnection client) {
 		DimensionState dimension = getDimensionState();
 		if (dimension == null) return;
 		if (!dimension.dimension.location().toString().equals(packet.getDimension())) {
@@ -247,8 +257,8 @@ public abstract class MapSyncMod {
 
 	public void handleSharedChunk(ChunkTile chunkTile) {
 		debugLog("received shared chunk: " + chunkTile.chunkPos());
-		for (SyncClient syncClient : getSyncClients()) {
-			syncClient.setServerKnownChunkHash(chunkTile.chunkPos(), chunkTile.dataHash());
+		for (SyncConnection syncConnection : getSyncClients()) {
+			syncConnection.setServerKnownChunkHash(chunkTile.chunkPos(), chunkTile.dataHash());
 		}
 
 		var dimensionState = getDimensionState();
@@ -259,7 +269,7 @@ public abstract class MapSyncMod {
 	public void handleCatchupData(ClientboundChunkTimestampsResponsePacket packet) {
 		var dimensionState = getDimensionState();
 		if (dimensionState == null) return;
-		debugLog("received catchup: " + packet.chunks.size() + " " + packet.chunks.get(0).syncClient.address);
+		debugLog("received catchup: " + packet.chunks.size() + " " + packet.chunks.get(0).syncConnection.address);
 		dimensionState.addCatchupChunks(packet.chunks);
 	}
 
@@ -272,11 +282,11 @@ public abstract class MapSyncMod {
 		debugLog("requesting more catchup: " + chunks.size());
 		var byServer = new HashMap<String, List<CatchupChunk>>();
 		for (CatchupChunk chunk : chunks) {
-			var list = byServer.computeIfAbsent(chunk.syncClient.address, (a) -> new ArrayList<>());
+			var list = byServer.computeIfAbsent(chunk.syncConnection.address, (a) -> new ArrayList<>());
 			list.add(chunk);
 		}
 		for (List<CatchupChunk> chunksForServer : byServer.values()) {
-			SyncClient client = chunksForServer.get(0).syncClient;
+			SyncConnection client = chunksForServer.get(0).syncConnection;
 			client.send(new ServerboundCatchupRequestPacket(chunksForServer));
 		}
 	}

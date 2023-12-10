@@ -1,18 +1,19 @@
 package gjum.minecraft.mapsync.common.config;
 
+import static gjum.minecraft.mapsync.common.MapSyncMod.getMod;
+
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.annotations.Expose;
-import net.minecraft.client.Minecraft;
-import org.jetbrains.annotations.NotNull;
-
 import java.io.File;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-
-import static gjum.minecraft.mapsync.common.MapSyncMod.getMod;
+import net.minecraft.client.Minecraft;
+import org.jetbrains.annotations.NotNull;
 
 public class ServerConfig extends JsonConfig {
 	public String gameAddress;

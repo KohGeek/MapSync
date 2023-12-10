@@ -1,16 +1,21 @@
 package gjum.minecraft.mapsync.common.mixins;
 
+import static gjum.minecraft.mapsync.common.MapSyncMod.getMod;
+import static gjum.minecraft.mapsync.common.utilities.RateLimitedExceptions.printErrorRateLimited;
+
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientPacketListener;
 import net.minecraft.core.BlockPos;
-import net.minecraft.network.protocol.game.*;
+import net.minecraft.network.protocol.game.ClientboundBlockBreakAckPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockDestructionPacket;
+import net.minecraft.network.protocol.game.ClientboundBlockUpdatePacket;
+import net.minecraft.network.protocol.game.ClientboundLevelChunkWithLightPacket;
+import net.minecraft.network.protocol.game.ClientboundLoginPacket;
+import net.minecraft.network.protocol.game.ClientboundRespawnPacket;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
-
-import static gjum.minecraft.mapsync.common.MapSyncMod.getMod;
-import static gjum.minecraft.mapsync.common.Utils.printErrorRateLimited;
 
 @Mixin(ClientPacketListener.class)
 public abstract class MixinClientPacketListener {

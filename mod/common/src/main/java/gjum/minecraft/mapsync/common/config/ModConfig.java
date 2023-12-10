@@ -1,10 +1,9 @@
 package gjum.minecraft.mapsync.common.config;
 
 import com.google.gson.annotations.Expose;
-import net.minecraft.client.Minecraft;
-
 import java.io.File;
 import java.nio.file.Path;
+import net.minecraft.client.Minecraft;
 
 public class ModConfig extends JsonConfig {
 	@Expose

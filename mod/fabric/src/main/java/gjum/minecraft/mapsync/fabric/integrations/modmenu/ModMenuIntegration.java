@@ -2,7 +2,7 @@ package gjum.minecraft.mapsync.fabric.integrations.modmenu;
 
 import com.terraformersmc.modmenu.api.ConfigScreenFactory;
 import com.terraformersmc.modmenu.api.ModMenuApi;
-import gjum.minecraft.mapsync.common.ModGui;
+import gjum.minecraft.mapsync.common.sync.gui.ModGui;
 import org.jetbrains.annotations.NotNull;
 
 /**

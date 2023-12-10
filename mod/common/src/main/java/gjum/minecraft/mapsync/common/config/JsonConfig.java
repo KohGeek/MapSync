@@ -2,12 +2,15 @@ package gjum.minecraft.mapsync.common.config;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.jetbrains.annotations.NotNull;
-
-import java.io.*;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Timer;
 import java.util.TimerTask;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * subclasses must have constructor without args, to create default config
