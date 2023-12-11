@@ -261,7 +261,8 @@ public class SyncConnection {
 			byte[] sharedSecret = new byte[16];
 			ThreadLocalRandom.current().nextBytes(sharedSecret);
 
-			if (!MapSyncMod.getMod().isDevMode()) {
+			final boolean shouldAuthWithMojang = !MapSyncMod.getMod().isDevMode();
+			if (shouldAuthWithMojang) {
 				// note that this is different from minecraft (we get no negative hashes)
 				final String shaHex; {
 					final MessageDigest messageDigest = Shortcuts.sha1();
@@ -280,6 +281,7 @@ public class SyncConnection {
 
 			try {
 				ctx.channel().writeAndFlush(new ServerboundEncryptionResponsePacket(
+						shouldAuthWithMojang,
 						encrypt(packet.publicKey, sharedSecret),
 						encrypt(packet.publicKey, packet.verifyToken)));
 			} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |

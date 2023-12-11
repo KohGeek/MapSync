@@ -72,6 +72,10 @@ export class BufReader {
 		return Number(valBig)
 	}
 
+	readBoolean() {
+		return this.readInt8() === 1
+	}
+
 	/** length-prefixed (32 bits), UTF-8 encoded */
 	readString() {
 		const len = this.readUInt32()

@@ -6,6 +6,7 @@ import { CatchupRequestPacket } from './protocol/CatchupRequestPacket'
 import { ChunkTilePacket } from './protocol/ChunkTilePacket'
 import { TcpClient, TcpServer } from './server'
 import { RegionCatchupPacket } from './protocol/RegionCatchupPacket'
+import { isAuthEnabled } from './metadata'
 
 let config: metadata.Config = null!
 Promise.resolve().then(async () => {
@@ -32,8 +33,10 @@ export class Main {
 	async handleClientAuthenticated(client: ProtocolClient) {
 		if (!client.uuid) throw new Error('Client not authenticated')
 
-		metadata.cachePlayerUuid(client.mcName!, client.uuid!)
-		await metadata.saveUuidCache()
+		if (isAuthEnabled()) {
+			metadata.cachePlayerUuid(client.mcName!, client.uuid!)
+			await metadata.saveUuidCache()
+		}
 
 		if (config.whitelist) {
 			if (!metadata.whitelist.has(client.uuid)) {

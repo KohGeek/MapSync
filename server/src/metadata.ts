@@ -157,3 +157,11 @@ export async function saveUuidCache() {
 		console.log('[UUID Cache] Saved UUID cache')
 	})
 }
+
+// ------------------------------------------------------------ //
+// Environment
+// ------------------------------------------------------------ //
+
+export function isAuthEnabled() {
+	return process.env['DISABLE_AUTH'] !== 'true'
+}

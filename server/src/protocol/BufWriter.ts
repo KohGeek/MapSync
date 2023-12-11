@@ -61,6 +61,10 @@ export class BufWriter {
 		this.off += 8
 	}
 
+	writeBoolean(val: boolean) {
+		this.writeInt8(val ? 1 : 0)
+	}
+
 	/** length-prefixed (32 bits), UTF-8 encoded */
 	writeString(str: string) {
 		const strBuf = Buffer.from(str, 'utf8')

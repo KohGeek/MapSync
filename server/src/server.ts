@@ -8,6 +8,7 @@ import { BufWriter } from './protocol/BufWriter'
 import { EncryptionResponsePacket } from './protocol/EncryptionResponsePacket'
 import { HandshakePacket } from './protocol/HandshakePacket'
 import { SUPPORTED_VERSIONS } from './constants'
+import { isAuthEnabled } from './metadata'
 
 const { PORT = '12312', HOST = '127.0.0.1' } = process.env
 
@@ -75,10 +76,10 @@ export class TcpClient {
 	private verifyToken?: Buffer
 	/** we need to wait for the mojang auth response
 	 * before we can en/decrypt packets following the handshake */
-	private cryptoPromise?: Promise<{
-		cipher: crypto.Cipher
+	private ciphers?: {
+		encipher: crypto.Cipher
 		decipher: crypto.Decipher
-	}>
+	}
 
 	constructor(
 		private socket: net.Socket,
@@ -93,9 +94,8 @@ export class TcpClient {
 
 		socket.on('data', async (data: Buffer) => {
 			try {
-				if (this.cryptoPromise) {
-					const { decipher } = await this.cryptoPromise
-					data = decipher.update(data)
+				if (this.ciphers) {
+					data = this.ciphers.decipher.update(data)
 				}
 
 				// creating a new buffer every time is fine in our case, because we expect most frames to be large
@@ -180,7 +180,7 @@ export class TcpClient {
 	}
 
 	async send(pkt: ServerPacket) {
-		if (!this.cryptoPromise) {
+		if (!this.ciphers) {
 			this.debug('Not encrypted, dropping packet', pkt.type)
 			return
 		}
@@ -195,7 +195,7 @@ export class TcpClient {
 	private async sendInternal(pkt: ServerPacket, doCrypto = false) {
 		if (!this.socket.writable)
 			return this.debug('Socket closed, dropping', pkt.type)
-		if (doCrypto && !this.cryptoPromise)
+		if (doCrypto && !this.ciphers)
 			throw new Error(`Can't encrypt: handshake not finished`)
 
 		const writer = new BufWriter() // TODO size hint
@@ -205,15 +205,14 @@ export class TcpClient {
 		buf.writeUInt32BE(buf.length - 4, 0) // write into space reserved above
 
 		if (doCrypto) {
-			const { cipher } = await this.cryptoPromise!
-			buf = cipher!.update(buf)
+			buf = this.ciphers?.encipher.update(buf)!
 		}
 
 		this.socket.write(buf)
 	}
 
 	private async handleHandshakePacket(packet: HandshakePacket) {
-		if (this.cryptoPromise) throw new Error(`Already authenticated`)
+		if (this.ciphers) throw new Error(`Already authenticated`)
 		if (this.verifyToken) throw new Error(`Encryption already started`)
 
 		if (!SUPPORTED_VERSIONS.has(packet.modVersion)) {
@@ -236,11 +235,16 @@ export class TcpClient {
 	}
 
 	private async handleEncryptionResponsePacket(pkt: EncryptionResponsePacket) {
-		if (this.cryptoPromise) throw new Error(`Already authenticated`)
+		if (this.ciphers) throw new Error(`Already authenticated`)
 		if (!this.claimedMojangName)
 			throw new Error(`Encryption has not started: no mojangName`)
 		if (!this.verifyToken)
 			throw new Error(`Encryption has not started: no verifyToken`)
+
+		if (!pkt.authenticatedWithMojang && isAuthEnabled()) {
+			this.kick(`not unauthenticated`)
+			return
+		}
 
 		const verifyToken = this.server.decrypt(pkt.verifyToken)
 		if (!this.verifyToken.equals(verifyToken)) {
@@ -251,37 +255,37 @@ export class TcpClient {
 
 		const secret = this.server.decrypt(pkt.sharedSecret)
 
-		const shaHex = crypto
-			.createHash('sha1')
-			.update(secret)
-			.update(this.server.publicKeyBuffer)
-			.digest()
-			.toString('hex')
+		if (isAuthEnabled()) {
+			const mojangAuth = await fetchHasJoined(
+				this.claimedMojangName,
+				crypto
+					.createHash('sha1')
+					.update(secret)
+					.update(this.server.publicKeyBuffer)
+					.digest()
+					.toString('hex'),
+			)
 
-		this.cryptoPromise = fetchHasJoined({
-			username: this.claimedMojangName,
-			shaHex,
-		}).then(async (mojangAuth) => {
-			if (!mojangAuth?.uuid) {
+			if (mojangAuth === false) {
 				this.kick(`Mojang auth failed`)
-				throw new Error(`Mojang auth failed`)
+				return
 			}
-
-			this.log('Authenticated as', mojangAuth)
 
 			this.uuid = mojangAuth.uuid
 			this.mcName = mojangAuth.name
 			this.name += ':' + mojangAuth.name
+		} else {
+			this.uuid = `AUTH-DISABLED-${this.claimedMojangName}`
+			this.mcName = this.claimedMojangName
+			this.name += ':' + this.claimedMojangName + '?'
+		}
 
-			return {
-				cipher: crypto.createCipheriv('aes-128-cfb8', secret, secret),
-				decipher: crypto.createDecipheriv('aes-128-cfb8', secret, secret),
-			}
-		})
+		this.ciphers = {
+			encipher: crypto.createCipheriv('aes-128-cfb8', secret, secret),
+			decipher: crypto.createDecipheriv('aes-128-cfb8', secret, secret),
+		}
 
-		await this.cryptoPromise.then(async () => {
-			await this.handler.handleClientAuthenticated(this)
-		})
+		await this.handler.handleClientAuthenticated(this)
 	}
 
 	debug(...args: any[]) {
@@ -298,22 +302,16 @@ export class TcpClient {
 	}
 }
 
-async function fetchHasJoined(args: {
-	username: string
-	shaHex: string
-	clientIp?: string
-}) {
-	const { username, shaHex, clientIp } = args
-
-	// if auth is disabled, return a "usable" item
-	if ('DISABLE_AUTH' in process.env)
-		return { name: username, uuid: `AUTH-DISABLED-${username}` }
-
+async function fetchHasJoined(
+	username: string,
+	shaHex: string,
+	clientIp?: string,
+) {
 	let url = `https://sessionserver.mojang.com/session/minecraft/hasJoined?username=${username}&serverId=${shaHex}`
 	if (clientIp) url += `&ip=${clientIp}`
 	const res = await fetch(url)
 	try {
-		if (res.status === 204) return null
+		if (res.status === 204) return false
 		let { id, name } = (await res.json()) as { id: string; name: string }
 		const uuid = id.replace(
 			/^(........)-?(....)-?(....)-?(....)-?(............)$/,
