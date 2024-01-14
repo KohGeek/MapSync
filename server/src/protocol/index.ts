@@ -41,6 +41,7 @@ export function getPacketId(type: ServerPacket['type']) {
 }
 
 export function decodePacket(reader: BufReader): ClientPacket {
+	console.log(reader)
 	const packetType = reader.readUInt8()
 	switch (packetIds[packetType]) {
 		case 'ChunkTile':

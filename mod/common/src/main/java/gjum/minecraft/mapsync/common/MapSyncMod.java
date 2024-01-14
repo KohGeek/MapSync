@@ -50,8 +50,7 @@ public abstract class MapSyncMod {
 			"key.map-sync.openGui",
 			InputConstants.Type.KEYSYM,
 			GLFW.GLFW_KEY_COMMA,
-			"category.map-sync"
-	);
+			"category.map-sync");
 
 	private @NotNull List<SyncConnection> syncConnections = new ArrayList<>();
 
@@ -68,7 +67,8 @@ public abstract class MapSyncMod {
 	private @Nullable ServerConfig serverConfig;
 
 	public MapSyncMod() {
-		if (INSTANCE != null) throw new IllegalStateException("Constructor called twice");
+		if (INSTANCE != null)
+			throw new IllegalStateException("Constructor called twice");
 		INSTANCE = this;
 	}
 
@@ -96,7 +96,8 @@ public abstract class MapSyncMod {
 		}
 
 		var dimensionState = getDimensionState();
-		if (dimensionState != null) dimensionState.onTick();
+		if (dimensionState != null)
+			dimensionState.onTick();
 	}
 
 	public void handleConnectedToServer(ClientboundLoginPacket packet) {
@@ -118,7 +119,8 @@ public abstract class MapSyncMod {
 			return null;
 		}
 		String gameAddress = currentServer.ip;
-		if (!gameAddress.contains(":")) gameAddress += ":25565";
+		if (!gameAddress.contains(":"))
+			gameAddress += ":25565";
 
 		if (serverConfig == null) {
 			serverConfig = ServerConfig.load(gameAddress);
@@ -128,17 +130,22 @@ public abstract class MapSyncMod {
 
 	public @NotNull List<SyncConnection> getSyncClients() {
 		var serverConfig = getServerConfig();
-		if (serverConfig == null) return shutDownSyncClients();
+		if (serverConfig == null)
+			return shutDownSyncClients();
 
 		var syncServerAddresses = serverConfig.getSyncServerAddresses();
-		if (syncServerAddresses.isEmpty()) return shutDownSyncClients();
+		if (syncServerAddresses.isEmpty())
+			return shutDownSyncClients();
 
-		// will be filled with clients that are still wanted (address) and are still connected
+		// will be filled with clients that are still wanted (address) and are still
+		// connected
 		var existingClients = new HashMap<String, SyncConnection>();
 
 		for (SyncConnection client : syncConnections) {
-			if (client.isShutDown) continue;
-			// avoid reconnecting to same sync server, to keep shared state (expensive to resync)
+			if (client.isShutDown)
+				continue;
+			// avoid reconnecting to same sync server, to keep shared state (expensive to
+			// resync)
 			if (!client.gameAddress.equals(serverConfig.gameAddress)) {
 				debugLog("Disconnecting sync client; different game server");
 				client.shutDown();
@@ -152,7 +159,8 @@ public abstract class MapSyncMod {
 
 		syncConnections = syncServerAddresses.stream().map(address -> {
 			var client = existingClients.get(address);
-			if (client == null) client = new SyncConnection(address, serverConfig.gameAddress);
+			if (client == null)
+				client = new SyncConnection(address, serverConfig.gameAddress);
 			client.autoReconnect = true;
 			return client;
 		}).collect(Collectors.toList());
@@ -172,9 +180,11 @@ public abstract class MapSyncMod {
 	 * for current dimension
 	 */
 	public @Nullable DimensionState getDimensionState() {
-		if (mc.level == null) return null;
+		if (mc.level == null)
+			return null;
 		var serverConfig = getServerConfig();
-		if (serverConfig == null) return null;
+		if (serverConfig == null)
+			return null;
 
 		if (dimensionState != null && dimensionState.dimension != mc.level.dimension()) {
 			shutDownDimensionState();
@@ -199,21 +209,28 @@ public abstract class MapSyncMod {
 	public void handleMcFullChunk(int cx, int cz) {
 		// TODO batch this up and send multiple chunks at once
 
-		if (mc.level == null) return;
+		if (mc.level == null)
+			return;
 		// TODO disable in nether (no meaningful "surface layer")
 		var dimensionState = getDimensionState();
-		if (dimensionState == null) return;
+		if (dimensionState == null)
+			return;
 
 		debugLog("received mc chunk: " + cx + "," + cz);
 
 		var chunkTile = chunkTileFromLevel(mc.level, cx, cz);
 
-		// TODO handle journeymap skipping chunks due to rate limiting - probably need mixin on render function
+		// TODO handle journeymap skipping chunks due to rate limiting - probably need
+		// mixin on render function
 		if (RenderQueue.areAllMapModsMapping()) {
 			dimensionState.setChunkTimestamp(chunkTile.chunkPos(), chunkTile.timestamp());
 		}
 		for (SyncConnection client : getSyncClients()) {
 			client.sendChunkTile(chunkTile);
+
+			// we think chunktile is fucked because of the other changes, let's log it and
+			// see what happens
+			debugLog(chunkTile.toString());
 		}
 	}
 
@@ -222,7 +239,8 @@ public abstract class MapSyncMod {
 	 * so a ChunkTile update is queued, instead of updating instantly.
 	 */
 	public void handleMcChunkPartialChange(int cx, int cz) {
-		// TODO update ChunkTile in a second or so; remember dimension in case it changes til then
+		// TODO update ChunkTile in a second or so; remember dimension in case it
+		// changes til then
 	}
 
 	public void handleSyncServerEncryptionSuccess() {
@@ -232,7 +250,8 @@ public abstract class MapSyncMod {
 
 	public void handleRegionTimestamps(ClientboundRegionTimestampsPacket packet, SyncConnection client) {
 		DimensionState dimension = getDimensionState();
-		if (dimension == null) return;
+		if (dimension == null)
+			return;
 		if (!dimension.dimension.location().toString().equals(packet.getDimension())) {
 			return;
 		}
@@ -262,13 +281,15 @@ public abstract class MapSyncMod {
 		}
 
 		var dimensionState = getDimensionState();
-		if (dimensionState == null) return;
+		if (dimensionState == null)
+			return;
 		dimensionState.processSharedChunk(chunkTile);
 	}
 
 	public void handleCatchupData(ClientboundChunkTimestampsResponsePacket packet) {
 		var dimensionState = getDimensionState();
-		if (dimensionState == null) return;
+		if (dimensionState == null)
+			return;
 		debugLog("received catchup: " + packet.chunks.size() + " " + packet.chunks.get(0).syncConnection.address);
 		dimensionState.addCatchupChunks(packet.chunks);
 	}
@@ -292,7 +313,8 @@ public abstract class MapSyncMod {
 	}
 
 	public static void debugLog(String msg) {
-		// we could also make use of slf4j's debug() but I don't know how to reconfigure that at runtime based on globalConfig
+		// we could also make use of slf4j's debug() but I don't know how to reconfigure
+		// that at runtime based on globalConfig
 		if (modConfig.isShowDebugLog()) {
 			logger.info(msg);
 		}
