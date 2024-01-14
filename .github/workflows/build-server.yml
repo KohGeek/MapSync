@@ -1,6 +1,7 @@
 name: Build+Test Server
 
 on:
+  workflow_dispatch:
   push:
     paths:
       - "server/**/*"
