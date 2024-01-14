@@ -5,11 +5,12 @@ import gjum.minecraft.mapsync.common.sync.network.Packet;
 import io.netty.buffer.ByteBuf;
 import java.util.ArrayList;
 import java.util.List;
-import javax.annotation.Nonnull;
-import net.minecraft.core.Registry;
+import jakarta.annotation.Nonnull;
+import net.minecraft.core.registries.Registries;
 
 /**
- * You'll receive this in response to a sent {@link ServerboundChunkTimestampsRequestPacket},
+ * You'll receive this in response to a sent
+ * {@link ServerboundChunkTimestampsRequestPacket},
  * containing an elaboration of chunk timestamps of all the regions you listed.
  * You should respond with a {@link ServerboundCatchupRequestPacket}.
  */
@@ -26,7 +27,7 @@ public class ClientboundChunkTimestampsResponsePacket implements Packet {
 	}
 
 	public static Packet read(ByteBuf buf) {
-		var dimension = Packet.readResourceKey(buf, Registry.DIMENSION_REGISTRY);
+		var dimension = Packet.readResourceKey(buf, Registries.DIMENSION);
 
 		int length = buf.readInt();
 		List<CatchupChunk> chunks = new ArrayList<>(length);

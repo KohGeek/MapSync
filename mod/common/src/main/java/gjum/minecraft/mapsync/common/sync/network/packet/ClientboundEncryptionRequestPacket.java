@@ -7,7 +7,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.X509EncodedKeySpec;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 
 /**
  * You will receive this in response to {@link ServerboundHandshakePacket}, and

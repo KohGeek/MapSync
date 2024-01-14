@@ -2,15 +2,14 @@ package gjum.minecraft.mapsync.common.sync.gui;
 
 import static gjum.minecraft.mapsync.common.MapSyncMod.getMod;
 
-import com.mojang.blaze3d.vertex.PoseStack;
 import gjum.minecraft.mapsync.common.config.ServerConfig;
 import java.util.List;
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.gui.components.Button;
 import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
-import net.minecraft.network.chat.TextComponent;
-import org.jetbrains.annotations.NotNull;
+import net.minecraft.network.chat.Component;
 
 public class ModGui extends Screen {
 	final Screen parentScreen;
@@ -26,7 +25,7 @@ public class ModGui extends Screen {
 	Button syncServerConnectBtn;
 
 	public ModGui(Screen parentScreen) {
-		super(new TextComponent("Map-Sync"));
+		super(Component.literal("Map-Sync"));
 		this.parentScreen = parentScreen;
 	}
 
@@ -45,29 +44,23 @@ public class ModGui extends Screen {
 
 			clearWidgets();
 
-			addRenderableWidget(new Button(
-					right - 100,
-					top,
-					100, 20,
-					new TextComponent("Close"),
-					button -> minecraft.setScreen(parentScreen)));
+			addRenderableWidget(
+					Button.builder(Component.literal("Close"), button -> minecraft.setScreen(parentScreen))
+							.bounds(right - 100, top, 100, 20).build());
 
 			if (serverConfig != null) {
 				addWidget(syncServerAddressField = new EditBox(font,
 						left,
 						top + 40,
 						innerWidth - 110, 20,
-						new TextComponent("Sync Server Address")));
+						Component.literal("Sync Server Address")));
 				syncServerAddressField.setMaxLength(256);
 				syncServerAddressField.setValue(String.join(" ",
 						serverConfig.getSyncServerAddresses()));
 
-				addRenderableWidget(syncServerConnectBtn = new Button(
-						right - 100,
-						top + 40,
-						100, 20,
-						new TextComponent("Connect"),
-						this::connectClicked));
+				syncServerConnectBtn = addRenderableWidget(
+						Button.builder(Component.literal("Connect"), this::connectClicked)
+								.bounds(right - 100, top + 40, 100, 20).build());
 			}
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -76,7 +69,8 @@ public class ModGui extends Screen {
 
 	public void connectClicked(Button btn) {
 		try {
-			if (syncServerAddressField == null) return;
+			if (syncServerAddressField == null)
+				return;
 			var addresses = List.of(syncServerAddressField.getValue().split("[^-_.:A-Za-z0-9]+"));
 			serverConfig.setSyncServerAddresses(addresses);
 			getMod().shutDownSyncClients();
@@ -88,15 +82,17 @@ public class ModGui extends Screen {
 	}
 
 	@Override
-	public void render(@NotNull PoseStack poseStack, int i, int j, float f) {
+	public void render(GuiGraphics guiGraphics, int i, int j, float f) {
 		try {
 			// wait for init() to finish
-			if (syncServerAddressField == null) return;
-			if (syncServerConnectBtn == null) return;
+			if (syncServerAddressField == null)
+				return;
+			if (syncServerConnectBtn == null)
+				return;
 
-			renderBackground(poseStack);
-			drawCenteredString(poseStack, font, title, width / 2, top, 0xFFFFFF);
-			syncServerAddressField.render(poseStack, i, j, f);
+			renderBackground(guiGraphics, i, j, f);
+			guiGraphics.drawCenteredString(font, title, width / 2, top, 0xFFFFFF);
+			syncServerAddressField.render(guiGraphics, i, j, f);
 
 			var dimensionState = getMod().getDimensionState();
 			if (dimensionState != null) {
@@ -105,9 +101,8 @@ public class ModGui extends Screen {
 						dimensionState.dimension.location(),
 						dimensionState.getNumChunksReceived(),
 						dimensionState.getNumChunksRendered(),
-						dimensionState.getRenderQueueSize()
-				);
-				drawString(poseStack, font, counterText, left, top + 70, 0x888888);
+						dimensionState.getRenderQueueSize());
+				guiGraphics.drawString(font, counterText, left, top + 70, 0x888888);
 			}
 
 			int numConnected = 0;
@@ -128,11 +123,11 @@ public class ModGui extends Screen {
 					statusText = "Connecting...";
 				}
 				statusText = client.address + "  " + statusText;
-				drawString(poseStack, font, statusText, left, msgY, statusColor);
+				guiGraphics.drawString(font, statusText, left, msgY, statusColor);
 				msgY += 10;
 			}
 
-			super.render(poseStack, i, j, f);
+			super.render(guiGraphics, i, j, f);
 		} catch (Throwable e) {
 			e.printStackTrace();
 		}

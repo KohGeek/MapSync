@@ -4,7 +4,7 @@ import gjum.minecraft.mapsync.common.sync.data.CatchupChunk;
 import gjum.minecraft.mapsync.common.sync.network.Packet;
 import io.netty.buffer.ByteBuf;
 import java.util.List;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.Level;
 import org.jetbrains.annotations.NotNull;
@@ -27,12 +27,15 @@ public class ServerboundCatchupRequestPacket implements Packet {
 	 * Chunks must all be in the same dimension
 	 */
 	public ServerboundCatchupRequestPacket(@Nonnull List<CatchupChunk> chunks) {
-		if (chunks.isEmpty()) throw new Error("Chunks list must not be empty");
+		if (chunks.isEmpty())
+			throw new Error("Chunks list must not be empty");
 		ResourceKey<Level> dim = null;
 		for (CatchupChunk chunk : chunks) {
-			if (dim == null) dim = chunk.dimension();
+			if (dim == null)
+				dim = chunk.dimension();
 			else if (!dim.equals(chunk.dimension())) {
-				throw new Error("Chunks must all be in the same dimension " + dim + " but this one was " + chunk.dimension());
+				throw new Error(
+						"Chunks must all be in the same dimension " + dim + " but this one was " + chunk.dimension());
 			}
 		}
 		this.chunks = chunks;

@@ -1,5 +1,5 @@
 modLoader = "javafml"
-loaderVersion = "[40,)"
+loaderVersion = "[48,)"
 issueTrackerURL = "${mod_issues_url}"
 license = "${copyright_licence}"
 
@@ -9,13 +9,13 @@ version = "${mod_version}"
 displayName = "MapSync"
 description = "${mod_description}"
 displayURL = "${mod_home_url}"
-authors = "Gjum,Protonull"
+authors = "Gjum,Protonull,KohGeek"
 #logoFile = ""
 
 [[dependencies.mapsync]]
 modId = "forge"
 mandatory = true
-versionRange = "[40,)"
+versionRange = "[48,)"
 ordering = "NONE"
 side = "CLIENT"
 

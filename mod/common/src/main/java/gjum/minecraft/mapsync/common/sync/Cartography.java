@@ -31,10 +31,12 @@ public class Cartography {
 		}
 		int dataVersion = 1;
 
-		// TODO speedup: don't serialize twice (once here, once later when writing to network)
+		// TODO speedup: don't serialize twice (once here, once later when writing to
+		// network)
 		var columnsBuf = Unpooled.buffer();
 		ChunkTile.writeColumns(columns, columnsBuf);
-		final byte[] dataHash; {
+		final byte[] dataHash;
+		{
 			final MessageDigest messageDigest = Shortcuts.sha1();
 			messageDigest.update(columnsBuf.nioBuffer());
 			dataHash = messageDigest.digest();
@@ -51,7 +53,8 @@ public class Cartography {
 		var bs = chunk.getBlockState(pos);
 		do {
 			layers.add(new BlockInfo(pos.getY(), bs));
-			if (bs.getMaterial().isSolidBlocking()) break;
+			if (bs.isCollisionShapeFullBlock(chunk, pos))
+				break;
 			var prevBS = bs;
 			do {
 				pos.setY(--y);

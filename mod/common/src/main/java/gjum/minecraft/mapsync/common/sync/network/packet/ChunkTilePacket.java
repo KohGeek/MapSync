@@ -3,7 +3,7 @@ package gjum.minecraft.mapsync.common.sync.network.packet;
 import gjum.minecraft.mapsync.common.sync.data.ChunkTile;
 import gjum.minecraft.mapsync.common.sync.network.Packet;
 import io.netty.buffer.ByteBuf;
-import javax.annotation.Nonnull;
+import jakarta.annotation.Nonnull;
 import org.jetbrains.annotations.NotNull;
 
 /**
@@ -11,7 +11,8 @@ import org.jetbrains.annotations.NotNull;
  *
  * 1. Clients are relaying chunk data to each other in real time.
  *
- * 2. You have requested synchronisation via {@link ServerboundCatchupRequestPacket}.
+ * 2. You have requested synchronisation via
+ * {@link ServerboundCatchupRequestPacket}.
  */
 public class ChunkTilePacket implements Packet {
 	public static final int PACKET_ID = 4;

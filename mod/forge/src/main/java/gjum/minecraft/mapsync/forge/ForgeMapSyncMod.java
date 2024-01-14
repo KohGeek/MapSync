@@ -5,8 +5,8 @@ import gjum.minecraft.mapsync.common.sync.gui.ModGui;
 import gjum.minecraft.mapsync.common.utilities.MagicValues;
 import java.io.File;
 import net.minecraft.client.KeyMapping;
-import net.minecraftforge.client.ClientRegistry;
-import net.minecraftforge.client.ConfigGuiHandler;
+// import net.minecraftforge.client.ClientRegistry;
+// import net.minecraftforge.client.ConfigGuiHandler;
 import net.minecraftforge.common.MinecraftForge;
 import net.minecraftforge.event.TickEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
@@ -38,13 +38,13 @@ public class ForgeMapSyncMod extends MapSyncMod {
 	public void clientSetup(FMLClientSetupEvent event) {
 		init();
 
-		// Register config hook for the mod list
-		ModLoadingContext.get().registerExtensionPoint(
-				ConfigGuiHandler.ConfigGuiFactory.class,
-				() -> new ConfigGuiHandler.ConfigGuiFactory(
-						(minecraft, previousScreen) -> new ModGui(previousScreen)
-				)
-		);
+		// // Register config hook for the mod list
+		// ModLoadingContext.get().registerExtensionPoint(
+		// 		ConfigGuiHandler.ConfigGuiFactory.class,
+		// 		() -> new ConfigGuiHandler.ConfigGuiFactory(
+		// 				(minecraft, previousScreen) -> new ModGui(previousScreen)
+		// 		)
+		// );
 	}
 
 	@SubscribeEvent
@@ -60,7 +60,7 @@ public class ForgeMapSyncMod extends MapSyncMod {
 
 	@Override
 	public void registerKeyBinding(KeyMapping mapping) {
-		ClientRegistry.registerKeyBinding(mapping);
+		// ClientRegistry.registerKeyBinding(mapping);
 	}
 
 	@Override

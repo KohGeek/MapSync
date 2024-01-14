@@ -4,7 +4,7 @@ import gjum.minecraft.mapsync.common.sync.network.Packet;
 import gjum.minecraft.mapsync.common.utilities.Arguments;
 import gjum.minecraft.mapsync.common.utilities.MagicValues;
 import io.netty.buffer.ByteBuf;
-import net.minecraft.core.Registry;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.level.ChunkPos;
 import net.minecraft.world.level.Level;
@@ -15,8 +15,7 @@ public record ChunkTile(
 		long timestamp,
 		int dataVersion,
 		byte[] dataHash,
-		BlockColumn[] columns
-) {
+		BlockColumn[] columns) {
 	public ChunkTile {
 		Arguments.checkNotNull("dataHash", dataHash);
 		Arguments.checkLength("dataHash", dataHash.length, MagicValues.SHA1_HASH_LENGTH);
@@ -51,7 +50,7 @@ public record ChunkTile(
 	}
 
 	public static ChunkTile fromBuf(ByteBuf buf) {
-		var dimension = Packet.readResourceKey(buf, Registry.DIMENSION_REGISTRY);
+		var dimension = Packet.readResourceKey(buf, Registries.DIMENSION);
 		int x = buf.readInt();
 		int z = buf.readInt();
 		long timestamp = buf.readLong();

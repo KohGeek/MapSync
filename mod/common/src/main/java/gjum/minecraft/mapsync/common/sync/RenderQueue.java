@@ -4,7 +4,6 @@ import static gjum.minecraft.mapsync.common.MapSyncMod.debugLog;
 
 import gjum.minecraft.mapsync.common.sync.data.ChunkTile;
 import gjum.minecraft.mapsync.common.sync.hooks.JourneyMapHelper;
-import gjum.minecraft.mapsync.common.sync.hooks.VoxelMapHelper;
 import java.util.Comparator;
 import java.util.concurrent.PriorityBlockingQueue;
 import net.minecraft.client.Minecraft;
@@ -54,38 +53,38 @@ public class RenderQueue {
 					return; // world closed; all queued chunks can't be rendered
 				}
 
-				if (!JourneyMapHelper.isJourneyMapNotAvailable && !JourneyMapHelper.isMapping()
-						|| !VoxelMapHelper.isVoxelMapNotAvailable && !VoxelMapHelper.isMapping()
-				) {
+				if (!JourneyMapHelper.isJourneyMapNotAvailable && !JourneyMapHelper.isMapping()) {
 					debugLog("render is waiting til map mod is ready");
 					Thread.sleep(1000);
 					continue;
 				}
 
 				var chunkTile = queue.poll();
-				if (chunkTile == null) return;
+				if (chunkTile == null)
+					return;
 
 				if (chunkTile.dimension() != Minecraft.getInstance().level.dimension()) {
 					debugLog("skipping render wrong dim " + chunkTile.chunkPos());
 					continue; // mod renderers would render this to the wrong dimension
 				}
 
-				// chunks from sync server (live, region) will always be older than mc, so mc will take priority
+				// chunks from sync server (live, region) will always be older than mc, so mc
+				// will take priority
 				if (chunkTile.timestamp() < dimensionState.getChunkTimestamp(chunkTile.chunkPos())) {
 					// don't overwrite newer data with older data
 					debugLog("skipping render outdated " + chunkTile.chunkPos());
 				} else {
-					boolean voxelRendered = VoxelMapHelper.updateWithChunkTile(chunkTile);
 					boolean renderedJM = JourneyMapHelper.updateWithChunkTile(chunkTile);
 
-					debugLog("rendered? " + (voxelRendered||renderedJM) + " " + chunkTile.chunkPos() + " queue=" + queue.size());
+					debugLog("rendered? " + (renderedJM) + " " + chunkTile.chunkPos() + " queue=" + queue.size());
 
-					if (renderedJM || voxelRendered) {
+					if (renderedJM) {
 						dimensionState.setChunkTimestamp(chunkTile.chunkPos(), chunkTile.timestamp());
 					} // otherwise, update this chunk again when server sends it again
 				}
 
-				// count skipped(outdated) chunks too so DimensionState's "received" vs "rendered" count matches up
+				// count skipped(outdated) chunks too so DimensionState's "received" vs
+				// "rendered" count matches up
 				dimensionState.onChunkRenderDone(chunkTile);
 			}
 		} catch (InterruptedException ignored) {

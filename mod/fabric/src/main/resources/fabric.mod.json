@@ -6,7 +6,8 @@
 	"description": "${mod_description}",
 	"authors": [
 		"Gjum",
-		"Protonull"
+		"Protonull",
+		"KohGeek"
 	],
 	"contact": {
 		"homepage": "${mod_home_url}",
@@ -27,7 +28,7 @@
 	"depends": {
 		"minecraft": "${minecraft_version}",
 		"fabricloader": ">=${fabric_loader_version}",
-		"fabric": "*"
+		"fabric-api": "*"
 	},
 	"mixins": [
 		"mapsync.common.mixins.json",

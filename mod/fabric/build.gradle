@@ -1,5 +1,5 @@
 plugins {
-	id "com.github.johnrengelman.shadow" version "7.1.2"
+	id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
 architectury {
@@ -22,11 +22,10 @@ dependencies {
 	common(project(path: ":common", configuration: "namedElements"))
 	shadowCommon(project(path: ":common", configuration: "transformProductionFabric"))
 
-	modCompileOnlyApi("maven.modrinth:voxelmap-updated:SDVTG1wT")
-	modCompileOnlyApi("maven.modrinth:journeymap:5JbcGXLn")
+	modCompileOnlyApi("maven.modrinth:journeymap:7zt8duBI")
 
-	// ModMenu 3.2.5
-	modCompileOnly("maven.modrinth:modmenu:nVxObSbX") // https://modrinth.com/mod/modmenu/version/3.2.5
+	// ModMenu 8.0.1
+	modCompileOnly("maven.modrinth:modmenu:fCQyI9Zj") // https://modrinth.com/mod/modmenu/version/8.0.1
 }
 
 processResources {
@@ -47,17 +46,17 @@ processResources {
 
 shadowJar {
 	configurations = [project.configurations.shadowCommon]
-	classifier "dev-shadow"
+	archiveClassifier = "dev-shadow"
 }
 
 remapJar {
 	input.set shadowJar.archiveFile
 	dependsOn shadowJar
-	classifier "fabric"
+	archiveClassifier = "fabric"
 }
 
 jar {
-	classifier "dev"
+	archiveClassifier = "dev"
 }
 
 sourcesJar {

@@ -104,7 +104,8 @@ public class SyncConnection {
 	private static @Nullable NioEventLoopGroup workerGroup;
 
 	public SyncConnection(@NotNull String address, @NotNull String gameAddress) {
-		if (!address.contains(":")) address = address + ":12312";
+		if (!address.contains(":"))
+			address = address + ":12312";
 		this.address = address;
 		this.gameAddress = gameAddress;
 		connect();
@@ -112,7 +113,8 @@ public class SyncConnection {
 
 	private void connect() {
 		try {
-			if (isShutDown) return;
+			if (isShutDown)
+				return;
 
 			if (workerGroup != null && !workerGroup.isShuttingDown()) {
 				// end any tasks of the old connection
@@ -162,19 +164,23 @@ public class SyncConnection {
 	void handleDisconnect(Throwable err) {
 		isEncrypted = false;
 
-		if (Minecraft.getInstance().level == null) shutDown();
+		if (Minecraft.getInstance().level == null)
+			shutDown();
 
 		String errMsg = err.getMessage();
-		if (errMsg == null) errMsg = err.toString();
+		if (errMsg == null)
+			errMsg = err.toString();
 		lastError = errMsg;
 		if (isShutDown) {
 			logger.warn("[map-sync] Got disconnected from '" + address + "'." +
 					" Won't retry (has shut down)");
-			if (!errMsg.contains("Channel inactive")) err.printStackTrace();
+			if (!errMsg.contains("Channel inactive"))
+				err.printStackTrace();
 		} else if (!autoReconnect) {
 			logger.warn("[map-sync] Got disconnected from '" + address + "'." +
 					" Won't retry (autoReconnect=false)");
-			if (!errMsg.contains("Channel inactive")) err.printStackTrace();
+			if (!errMsg.contains("Channel inactive"))
+				err.printStackTrace();
 		} else if (workerGroup == null) {
 			logger.warn("[map-sync] Got disconnected from '" + address + "'." +
 					" Won't retry (workerGroup=null)");
@@ -185,13 +191,15 @@ public class SyncConnection {
 			if (!errMsg.startsWith("Connection refused: ")) { // reduce spam
 				logger.warn("[map-sync] Got disconnected from '" + address + "'." +
 						" Retrying in " + retrySec + " sec");
-				if (!errMsg.contains("Channel inactive")) err.printStackTrace();
+				if (!errMsg.contains("Channel inactive"))
+					err.printStackTrace();
 			}
 		}
 	}
 
 	public synchronized void handleEncryptionSuccess() {
-		if (channel == null) return;
+		if (channel == null)
+			return;
 
 		lastError = null;
 		isEncrypted = true;
@@ -225,8 +233,10 @@ public class SyncConnection {
 	public synchronized void send(Packet packet, boolean flush) {
 		try {
 			if (isEncrypted() && channel != null && channel.isActive()) {
-				if (flush) channel.writeAndFlush(packet);
-				else channel.write(packet);
+				if (flush)
+					channel.writeAndFlush(packet);
+				else
+					channel.write(packet);
 			} else {
 				queue.add(packet);
 				// don't let the queue occupy too much memory
@@ -264,7 +274,8 @@ public class SyncConnection {
 			final boolean shouldAuthWithMojang = !MapSyncMod.getMod().isDevMode();
 			if (shouldAuthWithMojang) {
 				// note that this is different from minecraft (we get no negative hashes)
-				final String shaHex; {
+				final String shaHex;
+				{
 					final MessageDigest messageDigest = Shortcuts.sha1();
 					messageDigest.update(sharedSecret);
 					messageDigest.update(packet.publicKey.getEncoded());
@@ -273,10 +284,9 @@ public class SyncConnection {
 
 				final User session = Minecraft.getInstance().getUser();
 				Minecraft.getInstance().getMinecraftSessionService().joinServer(
-						session.getGameProfile(),
+						session.getProfileId(),
 						session.getAccessToken(),
-						shaHex
-				);
+						shaHex);
 			}
 
 			try {
@@ -284,8 +294,8 @@ public class SyncConnection {
 						shouldAuthWithMojang,
 						encrypt(packet.publicKey, sharedSecret),
 						encrypt(packet.publicKey, packet.verifyToken)));
-			} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException |
-			         IllegalBlockSizeException e) {
+			} catch (NoSuchAlgorithmException | InvalidKeyException | NoSuchPaddingException | BadPaddingException
+					| IllegalBlockSizeException e) {
 				shutDown();
 				throw new RuntimeException(e);
 			}
@@ -301,7 +311,8 @@ public class SyncConnection {
 		}
 	}
 
-	private static byte[] encrypt(PublicKey key, byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException, BadPaddingException, IllegalBlockSizeException, InvalidKeyException {
+	private static byte[] encrypt(PublicKey key, byte[] data) throws NoSuchPaddingException, NoSuchAlgorithmException,
+			BadPaddingException, IllegalBlockSizeException, InvalidKeyException {
 		Cipher cipher = Cipher.getInstance("RSA/ECB/PKCS1Padding");
 		cipher.init(Cipher.ENCRYPT_MODE, key);
 		return cipher.doFinal(data);

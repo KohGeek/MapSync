@@ -1,5 +1,5 @@
 plugins {
-	id "com.github.johnrengelman.shadow" version "7.1.2"
+	id "com.github.johnrengelman.shadow" version "8.1.1"
 }
 
 architectury {
@@ -27,7 +27,7 @@ dependencies {
 	common(project(path: ":common", configuration: "namedElements"))
 	shadowCommon(project(path: ":common", configuration: "transformProductionForge"))
 
-	modCompileOnlyApi("maven.modrinth:journeymap:2G6aMzKY")
+	modCompileOnlyApi("maven.modrinth:journeymap:P9GgQSrA")
 }
 
 processResources {
@@ -49,17 +49,17 @@ shadowJar {
 	exclude "fabric.mod.json"
 
 	configurations = [project.configurations.shadowCommon]
-	classifier "dev-shadow"
+	archiveClassifier = "dev-shadow"
 }
 
 remapJar {
 	input.set shadowJar.archiveFile
 	dependsOn shadowJar
-	classifier "forge"
+	archiveClassifier = "forge"
 }
 
 jar {
-	classifier "dev"
+	archiveClassifier = "dev"
 }
 
 sourcesJar {
